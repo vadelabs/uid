@@ -500,6 +500,8 @@
 
 ;; Object and nil only need uuid? predicate, not the full protocol
 #_{:clj-kondo/ignore [:missing-protocol-method]}
+
+
 (extend-protocol UUIDRfc9562
   Object
   (uuid? [_] false)
@@ -540,5 +542,3 @@
   (as-uuid [_x]
     (throw (IllegalArgumentException. (format "%s cannot be coerced to UUID." _x))))
   (uuidable? ^boolean [_] false))
-
-

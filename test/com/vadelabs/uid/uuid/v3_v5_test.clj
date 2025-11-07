@@ -1,6 +1,8 @@
 (ns com.vadelabs.uid.uuid.v3-v5-test
-  (:require [clojure.test :refer [deftest is testing]]
-            [com.vadelabs.uid.uuid.interface :as uuid]))
+  (:require
+    [clojure.test :refer [deftest is testing]]
+    [com.vadelabs.uid.uuid.interface :as uuid]))
+
 
 (deftest check-v3-special-cases
   (testing "v3 special case correctness..."
@@ -15,6 +17,7 @@
     (is (= (uuid/v3 uuid/+namespace-url+ "")
            #uuid "14CDB9B4-DE01-3FAA-AFF5-65BC2F771745"))))
 
+
 (deftest check-v5-special-cases
   (testing "v5 special case correctness..."
     (is (= (uuid/v5 uuid/+null+ "")
@@ -28,6 +31,7 @@
     (is (= (uuid/v5 uuid/+namespace-url+ "")
            #uuid "1B4DB7EB-4057-5DDF-91E0-36DEC72071F5"))))
 
+
 (deftest check-v3-deterministic
   (testing "v3 UUIDs are deterministic"
     (let [ns-uuid uuid/+namespace-dns+
@@ -37,6 +41,7 @@
       (is (= u1 u2))
       (is (= 3 (uuid/get-version u1)))
       (is (= 2 (uuid/get-variant u1))))))
+
 
 (deftest check-v5-deterministic
   (testing "v5 UUIDs are deterministic"
@@ -48,6 +53,7 @@
       (is (= 5 (uuid/get-version u1)))
       (is (= 2 (uuid/get-variant u1))))))
 
+
 (deftest check-v3-v5-different
   (testing "v3 and v5 produce different UUIDs for same input"
     (let [ns-uuid uuid/+namespace-dns+
@@ -55,6 +61,7 @@
           u3 (uuid/v3 ns-uuid nm)
           u5 (uuid/v5 ns-uuid nm)]
       (is (not= u3 u5)))))
+
 
 (deftest check-namespace-uniqueness
   (testing "Different namespaces produce different UUIDs"
@@ -66,6 +73,7 @@
       (is (not= u-dns u-oid))
       (is (not= u-url u-oid)))))
 
+
 (deftest check-v3-sample-cases
   (testing "v3 sample test cases from reference"
     (is (= (uuid/v3 uuid/+null+ " !\"#$%&'()*+,-./0123456789")
@@ -74,6 +82,7 @@
            #uuid "1F1723EB-AEB7-32C6-9221-B43CF93434AE"))
     (is (= (uuid/v3 uuid/+namespace-dns+ "abcdefghijklmnopqrstuvwxyz")
            #uuid "E7684C6A-B70E-3531-9426-3BC6E033B0FE"))))
+
 
 (deftest check-v5-sample-cases
   (testing "v5 sample test cases from reference"

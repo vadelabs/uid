@@ -1,10 +1,11 @@
 # UID Component
 
-Unified interface for unique identifier generation.
+Unified interface for unique id generation.
 
 ## Features
 
 ### UUID (RFC9562)
+
 - **v0**: Null UUID
 - **v1**: Time-based with MAC address
 - **v3**: Name-based with MD5
@@ -16,6 +17,7 @@ Unified interface for unique identifier generation.
 - **SQUUID**: Sequential UUID (non-standard)
 
 ### Flake
+
 - 192-bit time-ordered identifiers
 - Nanosecond precision
 - 128-bit entropy

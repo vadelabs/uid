@@ -17,8 +17,9 @@
    - `flake/*` for Flake operations"
   (:refer-clojure :exclude [uuid? max < > =])
   (:require
-    [com.vadelabs.uid.uuid.interface :as uuid]
-    [com.vadelabs.uid.flake.interface :as flake]))
+    [com.vadelabs.uid.flake.interface :as flake]
+    [com.vadelabs.uid.uuid.interface :as uuid]))
+
 
 ;; =============================================================================
 ;; UUID API - Re-export from uuid.interface
@@ -31,6 +32,7 @@
 (def +namespace-url+ uuid/+namespace-url+)
 (def +namespace-oid+ uuid/+namespace-oid+)
 (def +namespace-x500+ uuid/+namespace-x500+)
+
 
 ;; UUID Generation
 (def null uuid/null)
@@ -45,14 +47,17 @@
 (def v8 uuid/v8)
 (def squuid uuid/squuid)
 
+
 ;; Time utilities
 (def monotonic-time uuid/monotonic-time)
+
 
 ;; Protocols
 (def UUIDNameBytes uuid/UUIDNameBytes)
 (def UUIDable uuid/UUIDable)
 (def UUIDRfc9562 uuid/UUIDRfc9562)
 (def UUIDRfc4122 uuid/UUIDRfc4122)
+
 
 ;; Protocol functions
 (def as-byte-array uuid/as-byte-array)
@@ -65,10 +70,12 @@
 (def uuid< uuid/uuid<)
 (def uuid> uuid/uuid>)
 
+
 ;; Comparison (note: these shadow clojure.core functions)
 (def = uuid/=)
 (def < uuid/<)
 (def > uuid/>)
+
 
 ;; UUID accessors
 (def get-version uuid/get-version)
@@ -86,6 +93,7 @@
 (def get-node-id uuid/get-node-id)
 (def get-clk-seq uuid/get-clk-seq)
 
+
 ;; Conversions
 (def to-byte-array uuid/to-byte-array)
 (def to-string uuid/to-string)
@@ -93,9 +101,11 @@
 (def to-urn-string uuid/to-urn-string)
 (def to-uri uuid/to-uri)
 
+
 ;; Predicates
 (def uuid-string? uuid/uuid-string?)
 (def uuid-urn-string? uuid/uuid-urn-string?)
+
 
 ;; =============================================================================
 ;; Flake API - Re-export from flake.interface

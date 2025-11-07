@@ -14,9 +14,11 @@
   https://github.com/BrunoBonacci/mulog/blob/master/mulog-core/src/com/brunobonacci/mulog/flakes.clj
   Licensed under Apache License 2.0"
   (:require
-   [com.vadelabs.uid.flake.nanoclock :as clock])
+    [com.vadelabs.uid.flake.nanoclock :as clock])
   (:import
-   [java.util Random]))
+    (java.util
+      Random)))
+
 
 (defn- throw-invalid-char!
   "Throws an exception for invalid character in encoded string."
@@ -24,15 +26,18 @@
   (throw (ex-info "Invalid character in encoded string"
                   {:encoded encoded :position position})))
 
+
 (def ^:private encoding-alphabet "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz")
 (def ^:private encoding-chars (vec encoding-alphabet))
 (def ^:private encoded-length 32)
 (def ^:private byte-length 24)
 
+
 (def ^:private ^ThreadLocal rng-thread-local
   (ThreadLocal/withInitial
     (reify java.util.function.Supplier
       (get [_] (Random.)))))
+
 
 (defn- long->bytes
   [^long value bs offset]
@@ -41,6 +46,7 @@
     (when (>= i 0)
       (aset-byte bs (+ offset i) (unchecked-byte (bit-and v 0xFF)))
       (recur (dec i) (unsigned-bit-shift-right v 8)))))
+
 
 (defn- bytes->long
   [bs offset]
@@ -51,6 +57,7 @@
              (bit-or (bit-shift-left value 8)
                      (bit-and (aget bs (+ offset i)) 0xFF)))
       value)))
+
 
 (defn- encode->string
   [bs]
@@ -73,6 +80,7 @@
           (.append sb (nth encoding-chars (bit-and triplet 0x3F)))
           (recur (+ i 3)))))
     (.toString sb)))
+
 
 (defn- decode<-string
   [^String encoded]
@@ -99,17 +107,25 @@
             (recur (+ i 4) (+ pos 3))))
         result))))
 
-(defrecord Flake [timestamp random-high random-low]
+
+(defrecord Flake
+  [timestamp random-high random-low]
+
   Object
-  (toString [_]
+
+  (toString
+    [_]
     (let [bs (byte-array byte-length)]
       (long->bytes timestamp bs 0)
       (long->bytes random-high bs 8)
       (long->bytes random-low bs 16)
       (encode->string bs)))
 
+
   Comparable
-  (compareTo [_ other]
+
+  (compareTo
+    [_ other]
     (let [cmp (compare timestamp (:timestamp other))]
       (if (not= 0 cmp)
         cmp
@@ -118,11 +134,13 @@
             cmp
             (compare random-low (:random-low other))))))))
 
+
 (defn flake
   []
   (let [current-time (clock/current-time-nanos)
         ^Random rng (.get rng-thread-local)]
     (->Flake current-time (.nextLong rng) (.nextLong rng))))
+
 
 (defn parse-flake
   [flake-str]
@@ -136,6 +154,7 @@
       (catch Exception _
         nil))))
 
+
 (defn make-flake
   ([timestamp-nanos random-high random-low]
    (->Flake timestamp-nanos random-high random-low))
@@ -145,6 +164,7 @@
               (bytes->long byte-data 8)
               (bytes->long byte-data 16)))))
 
+
 (defn flake->bytes
   [^Flake f]
   (let [bs (byte-array byte-length)]
@@ -153,9 +173,11 @@
     (long->bytes (:random-low f) bs 16)
     bs))
 
+
 (defn flake->string
   [^Flake f]
   (.toString f))
+
 
 (defn flake->hex
   [^Flake f]
@@ -164,9 +186,11 @@
           (:random-high f)
           (:random-low f)))
 
+
 (defn timestamp-nanos
   [^Flake f]
   (:timestamp f))
+
 
 (defn flake?
   [x]

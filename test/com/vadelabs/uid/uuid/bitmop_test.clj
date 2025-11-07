@@ -1,10 +1,12 @@
 (ns com.vadelabs.uid.uuid.bitmop-test
-  (:require [clojure.test :refer [deftest is testing]]
-            [com.vadelabs.uid.uuid.bitmop :refer [mask mask-width mask-offset
-                                               ldb dpb bit-count expt2
-                                               sb8 sb64 ub4 ub56
-                                               assemble-bytes long->bytes
-                                               octet-hex hex]]))
+  (:require
+    [clojure.test :refer [deftest is testing]]
+    [com.vadelabs.uid.uuid.bitmop :refer [mask mask-width mask-offset
+                                          ldb dpb bit-count expt2
+                                          sb8 sb64 ub4 ub56
+                                          assemble-bytes long->bytes
+                                          octet-hex hex]]))
+
 
 (deftest check-bit-mask-operators
   (testing "bit-mask construction..."
@@ -47,7 +49,7 @@
     (is (= 32   (mask-width  (mask 32 0))))
     (is (= 31   (mask-width  (mask 31 32))))
     (is (= 62   (mask-width  (mask 62 0))))
-    (is (= 48   (mask-width  (mask 48 15)))) 
+    (is (= 48   (mask-width  (mask 48 15))))
     (is (= 64   (mask-width  (mask 64 0))))
     (is (= 60   (mask-width  (mask 60 4))))
     (is (= 31   (mask-width  (mask 31 33))))
@@ -60,6 +62,7 @@
     (is (= 0    (mask-offset (mask 64 0))))
     (is (= 63   (mask-offset (mask 1 63))))
     (is (= 1    (mask-offset (mask 63 1))))))
+
 
 (deftest check-bitwise-primitives
   (testing "ldb..."
@@ -79,11 +82,11 @@
   (testing "dpb..."
     (doseq [i (range 8)]
       (is (= 0x3 (ldb (mask 4 (* i 4))
-                   (dpb (mask 4 (* i 4)) (mask 64 0) 0x3)))))
+                      (dpb (mask 4 (* i 4)) (mask 64 0) 0x3)))))
     (doseq [i (range 7)]
       (is (= (bit-shift-left 0x1 i)
              (ldb (mask 8 (* i 8))
-               (dpb (mask 8 (* i 8)) (mask 64 0) (bit-shift-left 0x1 i)))))))
+                  (dpb (mask 8 (* i 8)) (mask 64 0) (bit-shift-left 0x1 i)))))))
   (testing "bit-count..."
     (is (= (bit-count 0x01010101)      4))
     (is (= (bit-count 0x77773333)     20))
@@ -98,6 +101,7 @@
     (is (= (bit-count 0)               0))
     (is (= (bit-count (- (mask 62 0))) 3))))
 
+
 (deftest check-byte-cast-operators
   (testing "byte-cast ops..."
     (is (= (sb8 255) -1))
@@ -110,9 +114,10 @@
     (is (= (ub4 -1) 15))
     (is (= (ub4 16) 0))
     (is (= (ub4 15) 15))
-    (is (= (ub4 7)  7))   
+    (is (= (ub4 7)  7))
     (is (= (ub56 0x80) 128))
     (is (= (class (ub56 0x80)) Long))))
+
 
 (deftest check-byte-reassembly-roundtrip
   (testing "disassemble/reassemble-bytes..."
@@ -120,6 +125,7 @@
       (let [bs (for [_ (range 8)]
                  (sb8 (rand-int (mask 8 0))))]
         (is (= (seq (long->bytes (assemble-bytes bs))) bs))))))
+
 
 (deftest check-simple-octet-hex-mapping
   (testing "octet-hex mapping..."
@@ -130,6 +136,7 @@
     (is (= (octet-hex 45)   "2d"))
     (is (= (octet-hex 250)  "fa"))
     (is (= (octet-hex 0x11) "11"))))
+
 
 (deftest check-hex-string-conversion
   (testing "hex string conversion..."
@@ -142,6 +149,7 @@
     (is (= (hex 255)                               "00000000000000ff"))
     (is (= (hex 65536)                             "0000000000010000"))
     (is (= (hex -1)                                "ffffffffffffffff"))))
+
 
 (deftest check-expt2
   (testing "expt2 power of 2..."

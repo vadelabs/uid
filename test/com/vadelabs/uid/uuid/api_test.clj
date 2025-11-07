@@ -1,8 +1,12 @@
 (ns com.vadelabs.uid.uuid.api-test
   (:refer-clojure :exclude [uuid? max])
-  (:require [clojure.test :refer [deftest is testing]]
-            [com.vadelabs.uid.uuid.interface :as uuid])
-  (:import [java.lang IllegalArgumentException]))
+  (:require
+    [clojure.test :refer [deftest is testing]]
+    [com.vadelabs.uid.uuid.interface :as uuid])
+  (:import
+    (java.lang
+      IllegalArgumentException)))
+
 
 (deftest check-unique-identifier-protocol
   (testing "v0 uuid protocol..."
@@ -68,7 +72,7 @@
       (is (= (uuid/null? tmpid)               false))
       (is (= (uuid/max? tmpid)                true))
       (is (= (seq (uuid/to-byte-array tmpid)) [-1 -1 -1 -1 -1 -1 -1 -1
-                                          -1 -1 -1 -1 -1 -1 -1 -1]))
+                                               -1 -1 -1 -1 -1 -1 -1 -1]))
       (is (= (uuid/get-version tmpid)         0xf))
       (is (= (uuid/to-string tmpid)       "ffffffff-ffff-ffff-ffff-ffffffffffff"))
       (is (= (uuid/to-urn-string tmpid)
@@ -83,7 +87,7 @@
       (is (= (uuid/null? tmpid)               false))
       (is (= (uuid/max? tmpid)                false))
       (is (= (seq (uuid/to-byte-array tmpid)) [30  -13 -16 111 22  -37 111 -16
-                                          -69 1   27  80  -26 -13 -98 127]))
+                                               -69 1   27  80  -26 -13 -98 127]))
       (is (= (uuid/get-version tmpid)         6))
       (is (= (uuid/to-string tmpid)       "1ef3f06f-16db-6ff0-bb01-1b50e6f39e7f"))
       (is (= (uuid/to-urn-string tmpid)
@@ -98,7 +102,7 @@
       (is (= (uuid/null? tmpid)               false))
       (is (= (uuid/max? tmpid)                false))
       (is (= (seq (uuid/to-byte-array tmpid)) [1   -112 -98 -82  72  1  117 58
-                                          -68 -43  8   -119 -61 74 -63 41]))
+                                               -68 -43  8   -119 -61 74 -63 41]))
       (is (= (uuid/get-version tmpid)         7))
       (is (= (uuid/to-string tmpid)       "01909eae-4801-753a-bcd5-0889c34ac129"))
       (is (= (uuid/to-urn-string tmpid)
@@ -113,7 +117,7 @@
       (is (= (uuid/null? tmpid)               false))
       (is (= (uuid/max? tmpid)                false))
       (is (= (seq (uuid/to-byte-array tmpid)) [-1  -1 -1 -1 -1 -1 -113 -1
-                                          -65 -1 -1 -1 -1 -1 -1   -1]))
+                                               -65 -1 -1 -1 -1 -1 -1   -1]))
       (is (= (uuid/get-version tmpid)         8))
       (is (= (uuid/to-string tmpid)       "ffffffff-ffff-8fff-bfff-ffffffffffff"))
       (is (= (uuid/to-urn-string tmpid)
@@ -121,10 +125,12 @@
       (is (= (uuid/get-timestamp tmpid)      nil))
       (is (= (uuid/get-unix-time tmpid)      nil)))))
 
+
 (deftest check-predicates
   (testing "string predicates..."
     (is (uuid/uuid-string?       (uuid/to-string       (uuid/v4))))
     (is (uuid/uuid-urn-string?   (uuid/to-urn-string   (uuid/v4))))))
+
 
 (deftest nil-test
   (testing "Calling certain functions/methods on nil returns nil"
@@ -142,10 +148,12 @@
 
     (is (false? (uuid/uuid-urn-string? nil)))))
 
+
 (deftest byte-array-round-trip-test
   (testing "round-trip via byte-array"
     (let [u #uuid "4787199e-c0e2-4609-b5b8-284f2b7d117d"]
       (is (= u (uuid/as-uuid (uuid/as-byte-array u)))))))
+
 
 (deftest uri-round-trip-test
   (testing "round-trip via URI"
@@ -155,12 +163,14 @@
       (is (uuid/uuidable? uri))
       (is (= u (uuid/as-uuid uri))))))
 
+
 (deftest string-conversion-test
   (testing "UUID from string conversion"
     (is (= #uuid "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
            (uuid/as-uuid "6ba7b810-9dad-11d1-80b4-00c04fd430c8")))
     (is (= #uuid "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
            (uuid/as-uuid "urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8")))))
+
 
 (deftest comparison-test
   (testing "UUID comparison operators"
@@ -174,6 +184,7 @@
       (is (uuid/> u2 u1))
       (is (uuid/= u1 u1))
       (is (not (uuid/= u1 u2))))))
+
 
 (deftest hex-string-test
   (testing "hex string conversion"

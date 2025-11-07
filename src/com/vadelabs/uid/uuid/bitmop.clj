@@ -2,10 +2,10 @@
   (:refer-clojure :exclude [< + - * bit-and bit-or bit-shift-left bit-shift-right
                             byte int long dec inc zero?])
   (:require
-    [com.vadelabs.uid.uuid.constants :refer [+hex-chars+ +ub4-mask+ +ub8-mask+ +ub16-mask+
-                                         +ub24-mask+ +ub32-mask+ +ub48-mask+ +ub56-mask+]]
     [clj-commons.primitive-math :refer [< + - * bit-and bit-or bit-shift-left bit-shift-right
-                                         >>> byte int long dec inc zero?]]))
+                                        >>> byte int long dec inc zero?]]
+    [com.vadelabs.uid.uuid.constants :refer [+hex-chars+ +ub4-mask+ +ub8-mask+ +ub16-mask+
+                                             +ub24-mask+ +ub32-mask+ +ub48-mask+ +ub56-mask+]]))
 
 
 (defn expt2

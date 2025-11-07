@@ -21,7 +21,7 @@
    Optimized for high-throughput scenarios with thread-local randomization
    and efficient encoding algorithms."
   (:require
-   [com.vadelabs.uid.flake.core :as core]))
+    [com.vadelabs.uid.flake.core :as core]))
 
 
 (defn flake
@@ -69,6 +69,7 @@
   [flake-str]
   (core/read-flake flake-str))
 
+
 (defn from-string
   "Parses a Flake from its string representation.
 
@@ -76,12 +77,14 @@
   [s]
   (core/from-string s))
 
+
 (defn make-flake
   "Create a flake with specific timestamp and random components (for testing)"
   ([timestamp-nanos random-high random-low]
    (core/make-flake timestamp-nanos random-high random-low))
   ([byte-data]
    (core/make-flake byte-data)))
+
 
 (defn flake-bytes
   "Get the byte array representation of a flake"
