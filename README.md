@@ -1,6 +1,9 @@
-# UID Component
+# UID
 
-Unified interface for unique id generation.
+[![CI](https://github.com/vadelabs/uid/actions/workflows/ci.yml/badge.svg)](https://github.com/vadelabs/uid/actions/workflows/ci.yml)
+[![Clojars](https://img.shields.io/clojars/v/com.vadelabs/uid.svg)](https://clojars.org/com.vadelabs/uid)
+
+Unified interface for unique identifier generation.
 
 ## Features
 
@@ -22,6 +25,20 @@ Unified interface for unique id generation.
 - Nanosecond precision
 - 128-bit entropy
 - URL-safe string encoding
+
+## Installation
+
+Add to your `deps.edn`:
+
+```clojure
+{:deps {com.vadelabs/uid {:mvn/version "RELEASE"}}}
+```
+
+Or with Leiningen, add to `project.clj`:
+
+```clojure
+[com.vadelabs/uid "RELEASE"]
+```
 
 ## Usage
 
