@@ -1,0 +1,84 @@
+(ns com.vadelabs.uid.uuid.node
+  (:require
+    [com.vadelabs.uid.uuid.bitmop :refer [assemble-bytes ldb dpb mask]]
+    [com.vadelabs.uid.uuid.random :as random]
+    [com.vadelabs.uid.uuid.util   :refer [java6? compile-if]])
+  (:import
+    (java.net
+      InetAddress
+      NetworkInterface)
+    (java.security
+      MessageDigest)
+    (java.util
+      Properties)))
+
+
+(defonce +clock-sequence+ (inc (rand-int 0xffff)))
+
+
+(def ^:private datasources
+  ["java.vendor"
+   "java.vendor.url"
+   "java.version"
+   "os.arch"
+   "os.name"
+   "os.version"])
+
+
+(defn- all-local-addresses
+  []
+  (let [^InetAddress local-host (InetAddress/getLocalHost)
+        host-name (.getCanonicalHostName local-host)
+        base-addresses #{(str local-host) host-name}
+        network-interfaces (reduce (fn [acc ^NetworkInterface ni]
+                                     (concat acc
+                                             (map str (enumeration-seq
+                                                        (.getInetAddresses ni)))))
+                                   base-addresses
+                                   (enumeration-seq
+                                     (NetworkInterface/getNetworkInterfaces)))]
+    (reduce conj network-interfaces
+            (map str (InetAddress/getAllByName host-name)))))
+
+
+(defn- make-node-id
+  []
+  (let [addresses (all-local-addresses)
+        ^MessageDigest digest (MessageDigest/getInstance "MD5")
+        ^Properties    props  (System/getProperties)
+        to-digest (reduce (fn [acc k]
+                            (conj acc (.getProperty props k)))
+                          addresses datasources)]
+    (doseq [^String d to-digest]
+      (compile-if (java6?)
+                  (.update digest (.getBytes d))
+                  (.update digest
+                           (.getBytes d java.nio.charset.StandardCharsets/UTF_8))))
+    (map bit-or
+         [0x00 0x00 0x00 0x00 0x00 0x01]
+         (take 6 (seq (.digest digest))))))
+
+
+(def node-id make-node-id)
+
+(def +node-id+ (delay (assemble-bytes (cons 0 (cons 0 (node-id))))))
+
+
+(defn- +v1-lsb+'
+  []
+  (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
+        clk-low   (ldb (mask 8 0) +clock-sequence+)]
+    (dpb (mask 8 56) (dpb (mask 8 48) @+node-id+ clk-low) clk-high)))
+
+
+(def +v1-lsb+ (memoize +v1-lsb+'))
+
+
+(defn- +v6-lsb+'
+  []
+  (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
+        clk-low   (ldb (mask 8 0) +clock-sequence+)]
+    (dpb (mask 8 56) (dpb (mask 8 48) (random/long) clk-low) clk-high)))
+
+
+(def +v6-lsb+ (memoize +v6-lsb+'))
