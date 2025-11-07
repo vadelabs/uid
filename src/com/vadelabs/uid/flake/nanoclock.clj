@@ -19,32 +19,35 @@
   precision in a long value.")
 
 
-(defn- now-value
+(defn- now-ms
   "Returns the current time as milliseconds since Unix epoch."
   []
   (System/currentTimeMillis))
 
 
-(defn- nano
+(defn- now-nano
   "Returns the current value of the running JVM's high-resolution time source, in nanoseconds."
   []
   (System/nanoTime))
 
 
 (defonce ^:private clock
-  (let [tw0 (* (now-value) 1000000)
-        tm0 (nano)]
+  (let [tw0 (* (now-ms) 1000000)
+        tm0 (now-nano)]
     {:wall-start tw0
      :mono-start tm0}))
+
 
 (defn current-time-nanos
   []
   (+ (:wall-start clock)
-     (- (nano) (:mono-start clock))))
+     (- (now-nano) (:mono-start clock))))
+
 
 (defn current-time-micros
   []
   (quot (current-time-nanos) 1000))
+
 
 (defn current-time-millis
   []
