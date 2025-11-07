@@ -23,4 +23,7 @@
              :task (clojure "-T:build" "deploy")}
 
   install {:doc "Install the JAR locally (build via ci)."
-           :task (clojure "-T:build" "install")}}}
+           :task (clojure "-T:build" "install")}
+
+  bench {:doc "Run ID generation benchmarks. Usage: bb bench [iterations] (default: 10000)"
+         :task (apply clojure "-M:bench" "-m" "benchmark.id-generation" *command-line-args*)}}}
