@@ -23,7 +23,4 @@
              :task (clojure "-T:build" "deploy")}
 
   install {:doc "Install the JAR locally (build via ci)."
-           :task (clojure "-T:build" "install")}
-
-  coverage {:doc "Generate test coverage report (HTML + Codecov JSON)."
-            :task (clojure "-X:test:coverage")}}}
+           :task (clojure "-T:build" "install")}}}
