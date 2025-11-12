@@ -88,10 +88,10 @@
     (loop [i 0
            pos 0]
       (if (< i (count encoded))
-        (let [c1 (.indexOf encoding-alphabet (int (.charAt encoded i)))
-              c2 (.indexOf encoding-alphabet (int (.charAt encoded (+ i 1))))
-              c3 (.indexOf encoding-alphabet (int (.charAt encoded (+ i 2))))
-              c4 (.indexOf encoding-alphabet (int (.charAt encoded (+ i 3))))]
+        (let [^long c1 (.indexOf encoding-alphabet (int (.charAt encoded i)))
+              ^long c2 (.indexOf encoding-alphabet (int (.charAt encoded (+ i 1))))
+              ^long c3 (.indexOf encoding-alphabet (int (.charAt encoded (+ i 2))))
+              ^long c4 (.indexOf encoding-alphabet (int (.charAt encoded (+ i 3))))]
           (when (or (= -1 c1) (= -1 c2) (= -1 c3) (= -1 c4))
             (throw-invalid-char! encoded i))
           (let [triplet (bit-or (bit-shift-left c1 18)
