@@ -114,9 +114,39 @@
 
   (get-timestamp [uuid]
     "Extracts timestamp from time-based UUIDs (v1/v6/v7).
-     v1/v6: 60-bit 100ns intervals since 1582-10-15
-     v7: 48-bit milliseconds since Unix epoch
-     Returns nil for non-time-based versions.")
+
+     Returns:
+     - v1/v6: 60-bit value (100-nanosecond intervals since Gregorian epoch 1582-10-15)
+     - v7: 48-bit value (milliseconds since Unix epoch 1970-01-01)
+     - Other versions: nil
+
+     ## Bit Layout Diagrams
+
+     ### UUID v1 (timestamp scattered across MSB)
+     MSB (64 bits):
+     ┌─────────────────────────────────┬────────────────────┬──────────────┬──────┐
+     │        time_low (32 bits)       │  time_mid (16 bits)│ time_hi (12) │ ver  │
+     │  [bits 0-31 of timestamp]       │  [bits 32-47]      │ [bits 48-59] │ (4)  │
+     └─────────────────────────────────┴────────────────────┴──────────────┴──────┘
+     Extract: time_low || time_mid || time_hi → 60-bit timestamp
+
+     ### UUID v6 (timestamp reordered for lexical sorting)
+     MSB (64 bits):
+     ┌──────────────────┬────────────────────┬──────────────┬──────┐
+     │  time_high (32)  │  time_mid (16)     │ time_low (12)│ ver  │
+     │  [bits 28-59]    │  [bits 12-27]      │ [bits 0-11]  │ (4)  │
+     └──────────────────┴────────────────────┴──────────────┴──────┘
+     Bits: [63──────────────────────────16][15────────────12][11─8][7────0]
+     Extract: time_hi(28) || time_mid(12) || time_lo(12) → 60-bit timestamp
+
+     ### UUID v7 (Unix timestamp at start for optimal sorting)
+     MSB (64 bits):
+     ┌─────────────────────────────────────────────────┬──────┬──────────────┐
+     │          unix_ts_ms (48 bits)                   │ ver  │  rand (12)   │
+     │     milliseconds since Unix epoch 1970-01-01    │ (4)  │              │
+     └─────────────────────────────────────────────────┴──────┴──────────────┘
+     Bits: [63──────────────────────────────16][15──12][11────────────────0]
+     Extract: bits [63:16] → 48-bit timestamp")
 
   (get-instant ^java.util.Date [uuid]
     "Returns timestamp as java.util.Date, or nil for non-time-based UUIDs.")
@@ -224,13 +254,24 @@
 
   (get-timestamp ^long [uuid]
     (case (.version uuid)
+      ;; v1: Java UUID provides native .timestamp() method
       1 (.timestamp uuid)
+
+      ;; v6: Reassemble 60-bit timestamp from reordered fields
+      ;; MSB layout: [time_high(32) | time_mid(16) | time_low(12) | ver(4)]
+      ;; Extract time_low (bits 12-15), then shift and OR with mid/high
+      ;; Result: time_high(28) || time_mid(16) || time_low(12) = 60 bits
       6 (let [{:keys [mid high]} (get-time-fields uuid)]
           (bit-or (bitmop/ldb #=(bitmop/mask 12 0)
                               (.getMostSignificantBits uuid))
                   (bit-shift-left mid 12)
                   (bit-shift-left high 28)))
+
+      ;; v7: Extract 48-bit Unix timestamp from MSB
+      ;; MSB layout: [unix_ts_ms(48) | ver(4) | rand(12)]
+      ;; Extract bits [63:16] using mask-and-shift
       7 (bitmop/ldb #=(bitmop/mask 48 16) (.getMostSignificantBits uuid))
+
       nil))
 
   (get-unix-time ^long [uuid]
@@ -252,25 +293,38 @@
     (let [msb (.getMostSignificantBits uuid)
           version (get-version uuid)]
       (if (clojure/= 6 version)
-        ;; v6 has different field layout
-        {:low  (bitmop/ldb #=(bitmop/mask 16 0) msb)
-         :mid  (bitmop/ldb #=(bitmop/mask 16 16) msb)
-         :high (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))}
-        ;; v1, v7 and others
-        {:low  (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))
-         :mid  (bitmop/ldb #=(bitmop/mask 16 16) msb)
+        ;; v6 field layout (reordered for sorting):
+        ;; MSB: [time_high(32) | time_mid(16) | time_low(12) | ver(4)]
+        ;;      [63────────32][31─────────16][15─────────12][11──8]
+        {:low  (bitmop/ldb #=(bitmop/mask 16 0) msb)        ; Extract bits [15:0] (includes time_low + ver)
+         :mid  (bitmop/ldb #=(bitmop/mask 16 16) msb)       ; Extract bits [31:16] (time_mid)
+         :high (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))} ; Extract bits [63:32] (time_high)
+
+        ;; v1 and v7 field layout (original RFC 4122 order):
+        ;; MSB: [time_low(32) | time_mid(16) | time_high(12) | ver(4)]
+        ;;      [63───────32][31──────────16][15──────────12][11──8]
+        {:low  (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32)) ; Extract bits [63:32] (time_low)
+         :mid  (bitmop/ldb #=(bitmop/mask 16 16) msb)                     ; Extract bits [31:16] (time_mid)
          :high (bitmop/ldb #=(bitmop/mask 16 0) msb)})))
 
   (get-clock-fields [uuid]
+    ;; LSB layout for v1/v6:
+    ;; [clk_seq_hi_and_res(8) | clk_seq_low(8) | node(48)]
+    ;; [63───────────────56][55──────────48][47─────────0]
+    ;;
+    ;; For v7 and others, the fields have different meaning but same extraction
     (let [lsb (.getLeastSignificantBits uuid)]
       {:seq  (when (#{1 6} (.version uuid))
-               (.clockSequence uuid))
-       :high (bitmop/ldb #=(bitmop/mask 8 48) lsb)
+               (.clockSequence uuid))              ; Java UUID provides clock sequence for v1/v6
+       :high (bitmop/ldb #=(bitmop/mask 8 48) lsb) ; Extract bits [55:48] (clk_seq_low)
        :low  (bitmop/ldb #=(bitmop/mask 8 0) (bit-shift-right lsb 56))}))
 
   (get-node [uuid]
+    ;; Extract node identifier from LSB
+    ;; LSB: [clk_seq_hi(8) | clk_seq_low(8) | node(48)]
+    ;;      [63──────────56][55───────────48][47───────0]
     {:id (bitmop/ldb #=(bitmop/mask 48 0)
-                     (.getLeastSignificantBits uuid))})
+                     (.getLeastSignificantBits uuid))}) ; Extract bits [47:0] (node identifier)
 
   UUIDNameBytes
   (as-byte-array ^bytes [this]
