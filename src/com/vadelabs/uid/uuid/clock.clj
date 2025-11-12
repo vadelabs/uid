@@ -11,6 +11,43 @@
 (def ^:const +subcounter-resolution+     9999)
 
 
+;; =============================================================================
+;; Epoch and Time Conversion Constants
+;; =============================================================================
+
+(def ^:const gregorian-epoch-offset-100ns
+  "Offset from Gregorian epoch (1582-10-15) in 100-nanosecond intervals.
+   This constant is used to shift time values to the Gregorian calendar base
+   used in UUID v1 and v6 timestamps."
+  100103040000000000)
+
+(def ^:const unix-to-universal-time-offset-ms
+  "Milliseconds between Unix epoch (1970-01-01) and Universal Time epoch (1900-01-01).
+
+   Calculated as: 70 years × 365.25 days/year × 24 hours/day × 3600 seconds/hour × 1000 ms/second
+   Value: 2,208,988,800,000 ms"
+  2208988800000)
+
+(def ^:const ms-to-100ns-intervals
+  "Conversion factor from milliseconds to 100-nanosecond intervals.
+
+   UUID v1/v6 timestamps use 100-nanosecond intervals as the base unit.
+   1 millisecond = 10,000 × 100-nanosecond intervals"
+  10000)
+
+(def ^:const gregorian-to-unix-epoch-offset
+  "Offset for converting from Gregorian epoch timestamps to Unix epoch timestamps.
+   Used in posix-time calculations to shift time base from 1582 to 1970."
+  12219292800000)
+
+(def ^:const unix-to-universal-time-offset-seconds
+  "Seconds between Unix epoch (1970-01-01) and Universal Time epoch (1900-01-01).
+
+   Calculated as: 70 years × 365.25 days/year × 24 hours/day × 3600 seconds/hour
+   Value: 2,208,988,800 seconds"
+  2208988800)
+
+
 (let [-state- (atom (->State 0 0))]
   (defn monotonic-time
     "Generate a guaranteed monotonically increasing timestamp based on
@@ -33,8 +70,9 @@
                            (if (<= tt +subcounter-resolution+)
                              (->State tt time-now)
                              (recur))))))))]
-      (+ (.seqid new-state) 100103040000000000
-         (* (+ 2208988800000 (.millis new-state)) 10000)))))
+      (+ (.seqid new-state) gregorian-epoch-offset-100ns
+         (* (+ unix-to-universal-time-offset-ms (.millis new-state))
+            ms-to-100ns-intervals)))))
 
 
 (def ^:const +random-counter-resolution+ 0xfff)
@@ -71,7 +109,7 @@
   ([]
    (posix-time (System/currentTimeMillis)))
   ([^long gregorian]
-   (- (quot gregorian 10000) 12219292800000)))
+   (- (quot gregorian ms-to-100ns-intervals) gregorian-to-unix-epoch-offset)))
 
 
 (defn universal-time
@@ -80,4 +118,4 @@
   ([]
    (universal-time (monotonic-time)))
   ([^long gregorian]
-   (+ (posix-time gregorian) 2208988800)))
+   (+ (posix-time gregorian) unix-to-universal-time-offset-seconds)))
