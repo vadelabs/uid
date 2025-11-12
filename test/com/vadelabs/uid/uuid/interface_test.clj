@@ -1,7 +1,7 @@
 (ns com.vadelabs.uid.uuid.interface-test
   (:require
     [clojure.test :refer [deftest is testing]]
-    [com.vadelabs.uid.uuid.interface :as uuid])
+    [com.vadelabs.uid.uuid.core :as uuid])
   (:import
     (java.util
       UUID)))

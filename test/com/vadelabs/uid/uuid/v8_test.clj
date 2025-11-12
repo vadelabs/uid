@@ -2,7 +2,7 @@
   "Custom UUIDs tests"
   (:require
     [clojure.test :refer [deftest is testing]]
-    [com.vadelabs.uid.uuid.interface :as uuid]))
+    [com.vadelabs.uid.uuid.core :as uuid]))
 
 
 (deftest check-v8-special-cases

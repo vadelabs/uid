@@ -1,7 +1,7 @@
 (ns com.vadelabs.uid.flake.interface-test
   (:require
     [clojure.test :refer [deftest testing is]]
-    [com.vadelabs.uid.flake.interface :as flake]))
+    [com.vadelabs.uid.flake.core :as flake]))
 
 
 (deftest basic-flake-generation-test
@@ -16,8 +16,8 @@
 
 (deftest snowflake-string-generation-test
   (testing "Snowflake string generation"
-    (let [s1 (flake/snowflake)
-          s2 (flake/snowflake)]
+    (let [s1 (flake/flake-string)
+          s2 (flake/flake-string)]
       (is (string? s1))
       (is (string? s2))
       (is (= 32 (count s1)))
@@ -67,7 +67,7 @@
 (deftest flake-time-test
   (testing "Flake timestamp extraction"
     (let [f (flake/flake)
-          timestamp (flake/flake-time f)]
+          timestamp (flake/timestamp f)]
       (is (number? timestamp))
       (is (pos? timestamp)))))
 
@@ -75,7 +75,7 @@
 (deftest flake-hex-test
   (testing "Flake hex representation"
     (let [f (flake/flake)
-          hex (flake/flake-hex f)]
+          hex (flake/as-hex f)]
       (is (string? hex))
       (is (= 48 (count hex)))
       (is (re-matches #"[0-9a-f]{48}" hex)))))
@@ -115,6 +115,6 @@
 
 (deftest hex-monotonic-test
   (testing "Hex representation maintains monotonic property"
-    (let [hex-strings (repeatedly 100 #(flake/flake-hex (flake/flake)))]
+    (let [hex-strings (repeatedly 100 #(flake/as-hex (flake/flake)))]
       (is (= hex-strings (sort hex-strings))
           "Hex representations should maintain monotonic ordering"))))

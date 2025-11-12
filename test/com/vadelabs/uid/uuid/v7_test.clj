@@ -3,7 +3,7 @@
     [clojure.set]
     [clojure.test :refer [deftest is testing]]
     [com.vadelabs.uid.uuid.clock :as clock]
-    [com.vadelabs.uid.uuid.interface :as uuid]))
+    [com.vadelabs.uid.uuid.core :as uuid]))
 
 
 (deftest check-v7-single-threaded
