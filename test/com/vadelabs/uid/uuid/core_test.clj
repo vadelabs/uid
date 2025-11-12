@@ -1,4 +1,4 @@
-(ns com.vadelabs.uid.uuid.interface-test
+(ns com.vadelabs.uid.uuid.core-test
   (:require
     [clojure.test :refer [deftest is testing]]
     [com.vadelabs.uid.uuid.core :as uuid])

@@ -1,4 +1,4 @@
-(ns com.vadelabs.uid.flake.interface-test
+(ns com.vadelabs.uid.flake.core-test
   (:require
     [clojure.test :refer [deftest testing is]]
     [com.vadelabs.uid.flake.core :as flake]))
