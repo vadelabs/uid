@@ -409,7 +409,38 @@
 
 
 (defn v8
-  "Generate a v8 custom UUID with up to 122 bits of user data."
+  "Generate a v8 custom UUID with user-defined data.
+
+   The v8 UUID format provides 122 bits of custom data:
+
+   MSB layout (64 bits total):
+   ┌──────────────────────────────┬────┬──────────────────┐
+   │      custom data (48)        │ver │  custom data (12)│
+   │                              │ 8  │                  │
+   └──────────────────────────────┴────┴──────────────────┘
+   bits: [63──────────16][15─12][11────────────────────0]
+
+   LSB layout (64 bits total):
+   ┌─────┬──────────────────────────────────────────────┐
+   │var  │         custom data (62 bits)                │
+   │ 2   │                                              │
+   └─────┴──────────────────────────────────────────────┘
+   bits: [63-62][61────────────────────────────────────0]
+
+   Total custom data: 48 + 12 + 62 = 122 bits
+
+   Note: Version and variant bits are automatically set correctly.
+   Any existing version/variant bits in the input will be overwritten.
+
+   Args:
+     msb - Most significant 64 bits (bits 12-15 will be set to version 8)
+     lsb - Least significant 64 bits (bits 62-63 will be set to variant 2)
+
+   Example:
+     (v8 0x0123456789abcdef 0xfedcba9876543210)
+     ;=> #uuid \"01234567-89ab-8def-bfed-cba987654321\"
+                         ^^^^ ^^^^
+                         version  variant"
   ^java.util.UUID
   [^long msb ^long lsb]
   (UUID.
