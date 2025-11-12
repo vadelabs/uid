@@ -100,33 +100,24 @@
 
   (uuid>                         [x y])
 
-  (get-word-high                 [uuid])
-
-  (get-word-low                  [uuid])
-
   (get-version                   [uuid])
 
   (get-variant                   [uuid])
-
-  (get-time-low                  [uuid])
-
-  (get-time-mid                  [uuid])
-
-  (get-time-high                 [uuid])
-
-  (get-clk-high                  [uuid])
-
-  (get-clk-low                   [uuid])
-
-  (get-clk-seq                   [uuid])
-
-  (get-node-id                   [uuid])
 
   (get-timestamp                 [uuid])
 
   (get-instant   ^java.util.Date [uuid])
 
   (get-unix-time                 [uuid])
+
+  ;; Structured accessors (return maps)
+  (get-words                     [uuid] "Returns {:high long :low long}")
+
+  (get-time-fields               [uuid] "Returns {:low long :mid long :high long}")
+
+  (get-clock-fields              [uuid] "Returns {:seq short :high long :low long}")
+
+  (get-node                      [uuid] "Returns {:id long}")
 
   (to-byte-array                 [uuid])
 
@@ -171,12 +162,6 @@
                                          (.getLeastSignificantBits y)) 0)
         (clojure/> c 0))))
 
-  (get-word-high ^long [uuid]
-    (.getMostSignificantBits uuid))
-
-  (get-word-low ^long [uuid]
-    (.getLeastSignificantBits uuid))
-
   (null? ^boolean [uuid]
     (clojure/= 0 (.getMostSignificantBits uuid) (.getLeastSignificantBits uuid)))
 
@@ -205,50 +190,20 @@
     (str "urn:uuid:" (.toString uuid)))
 
   (to-hex-string [uuid]
-    (str (bitmop/hex (get-word-high uuid)) (bitmop/hex (get-word-low uuid))))
+    (let [{:keys [high low]} (get-words uuid)]
+      (str (bitmop/hex high) (bitmop/hex low))))
 
   (to-uri [uuid]
     (URI/create (to-urn-string uuid)))
 
-  (get-time-low ^long [uuid]
-    (let [msb (.getMostSignificantBits uuid)]
-      (if (clojure/= 6 (get-version uuid))
-        (bitmop/ldb #=(bitmop/mask 16 0) msb)
-        (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32)))))
-
-  (get-time-mid ^long [uuid]
-    (bitmop/ldb #=(bitmop/mask 16 16)
-                (.getMostSignificantBits uuid)))
-
-  (get-time-high ^long [uuid]
-    (let [msb (.getMostSignificantBits uuid)]
-      (if (clojure/= 6 (get-version uuid))
-        (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))
-        (bitmop/ldb #=(bitmop/mask 16 0) msb))))
-
-  (get-clk-low ^long [uuid]
-    (bitmop/ldb #=(bitmop/mask 8 0)
-                (bit-shift-right (.getLeastSignificantBits uuid) 56)))
-
-  (get-clk-high ^long [uuid]
-    (bitmop/ldb #=(bitmop/mask 8 48)
-                (.getLeastSignificantBits uuid)))
-
-  (get-clk-seq ^short [uuid]
-    (when (#{1 6} (.version uuid))
-      (.clockSequence uuid)))
-
-  (get-node-id ^long [uuid]
-    (bitmop/ldb #=(bitmop/mask 48 0)
-                (.getLeastSignificantBits uuid)))
-
   (get-timestamp ^long [uuid]
     (case (.version uuid)
       1 (.timestamp uuid)
-      6 (bit-or (bitmop/ldb #=(bitmop/mask 12 0)
-                            (.getMostSignificantBits uuid))
-                (bit-shift-left (get-time-mid uuid) 12)
-                (bit-shift-left (get-time-high uuid) 28))
+      6 (let [{:keys [mid high]} (get-time-fields uuid)]
+          (bit-or (bitmop/ldb #=(bitmop/mask 12 0)
+                              (.getMostSignificantBits uuid))
+                  (bit-shift-left mid 12)
+                  (bit-shift-left high 28)))
       7 (bitmop/ldb #=(bitmop/mask 48 16) (.getMostSignificantBits uuid))
       nil))
 
@@ -262,10 +217,121 @@
     (when-let [ts (get-unix-time uuid)]
       (Date. (long ts))))
 
+  ;; Structured accessors
+  (get-words [uuid]
+    {:high (.getMostSignificantBits uuid)
+     :low  (.getLeastSignificantBits uuid)})
+
+  (get-time-fields [uuid]
+    (let [msb (.getMostSignificantBits uuid)
+          version (get-version uuid)]
+      (if (clojure/= 6 version)
+        ;; v6 has different field layout
+        {:low  (bitmop/ldb #=(bitmop/mask 16 0) msb)
+         :mid  (bitmop/ldb #=(bitmop/mask 16 16) msb)
+         :high (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))}
+        ;; v1, v7 and others
+        {:low  (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))
+         :mid  (bitmop/ldb #=(bitmop/mask 16 16) msb)
+         :high (bitmop/ldb #=(bitmop/mask 16 0) msb)})))
+
+  (get-clock-fields [uuid]
+    (let [lsb (.getLeastSignificantBits uuid)]
+      {:seq  (when (#{1 6} (.version uuid))
+               (.clockSequence uuid))
+       :high (bitmop/ldb #=(bitmop/mask 8 48) lsb)
+       :low  (bitmop/ldb #=(bitmop/mask 8 0) (bit-shift-right lsb 56))}))
+
+  (get-node [uuid]
+    {:id (bitmop/ldb #=(bitmop/mask 48 0)
+                     (.getLeastSignificantBits uuid))})
+
   UUIDNameBytes
   (as-byte-array ^bytes [this]
     (to-byte-array this)))
 
+
+;; =============================================================================
+;; Fine-grained Convenience Accessors
+;; =============================================================================
+;; These are convenience functions that destructure the structured accessors
+;; for backwards compatibility and ease of use.
+
+(defn get-word-high
+  "Extract the most significant 64 bits (high word) from a UUID.
+
+  Convenience function wrapping get-words."
+  ^long [uuid]
+  (:high (get-words uuid)))
+
+
+(defn get-word-low
+  "Extract the least significant 64 bits (low word) from a UUID.
+
+  Convenience function wrapping get-words."
+  ^long [uuid]
+  (:low (get-words uuid)))
+
+
+(defn get-time-low
+  "Extract the low time field from a UUID.
+
+  Convenience function wrapping get-time-fields."
+  ^long [uuid]
+  (:low (get-time-fields uuid)))
+
+
+(defn get-time-mid
+  "Extract the mid time field from a UUID.
+
+  Convenience function wrapping get-time-fields."
+  ^long [uuid]
+  (:mid (get-time-fields uuid)))
+
+
+(defn get-time-high
+  "Extract the high time field from a UUID.
+
+  Convenience function wrapping get-time-fields."
+  ^long [uuid]
+  (:high (get-time-fields uuid)))
+
+
+(defn get-clk-seq
+  "Extract the clock sequence from a UUID.
+
+  Convenience function wrapping get-clock-fields."
+  [uuid]
+  (:seq (get-clock-fields uuid)))
+
+
+(defn get-clk-high
+  "Extract the high clock field from a UUID.
+
+  Convenience function wrapping get-clock-fields."
+  ^long [uuid]
+  (:high (get-clock-fields uuid)))
+
+
+(defn get-clk-low
+  "Extract the low clock field from a UUID.
+
+  Convenience function wrapping get-clock-fields."
+  ^long [uuid]
+  (:low (get-clock-fields uuid)))
+
+
+(defn get-node-id
+  "Extract the node ID from a UUID.
+
+  Convenience function wrapping get-node."
+  ^long [uuid]
+  (:id (get-node uuid)))
+
+
+;; =============================================================================
+;; UUID Generation Functions
+;; =============================================================================
 
 (defn null
   "Generates the v0 (null) UUID."
@@ -355,11 +421,10 @@
   []
   (let [uuid (v4)
         secs (clock/posix-time)
-        lsb  (get-word-low  uuid)
-        msb  (get-word-high uuid)
+        {:keys [high low]} (get-words uuid)
         timed-msb (bit-or (bit-shift-left secs 32)
-                          (bit-and +ub32-mask+ msb))]
-    (UUID. timed-msb lsb)))
+                          (bit-and +ub32-mask+ high))]
+    (UUID. timed-msb low)))
 
 
 (def ^:private byte-array-class (Class/forName "[B"))
