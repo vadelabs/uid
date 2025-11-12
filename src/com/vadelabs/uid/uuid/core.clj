@@ -551,8 +551,8 @@
 
 (defn uuid-vec?
   [v]
-  (and (clojure/= (count v) 16)
-       (every? #(and (integer? %) (>= -128  % 127)) v)))
+  (and (= (count v) 16)
+       (every? #(and (integer? %) (<= -128 % 127)) v)))
 
 
 (defn- str->uuid
