@@ -503,22 +503,14 @@
                                      (as-byte-array local-part))))
 
 
-(defn- compare-many
-  [f x y more]
-  (if (f x y)
-    (if (next more)
-      (recur f y (first more) (next more))
-      (f y (first more)))
-    false))
-
-
 (defn =
   "Directly compare two or more UUIDs for equality."
   ([_] true)
   ([x y]
    (uuid= x y))
   ([x y & more]
-   (compare-many uuid= x y more)))
+   (every? (fn [[a b]] (uuid= a b))
+           (partition 2 1 (list* x y more)))))
 
 
 (defn >
@@ -527,7 +519,8 @@
   ([x y]
    (uuid> x y))
   ([x y & more]
-   (compare-many uuid> x y more)))
+   (every? (fn [[a b]] (uuid> a b))
+           (partition 2 1 (list* x y more)))))
 
 
 (defn <
@@ -536,7 +529,8 @@
   ([x y]
    (uuid< x y))
   ([x y & more]
-   (compare-many uuid< x y more)))
+   (every? (fn [[a b]] (uuid< a b))
+           (partition 2 1 (list* x y more)))))
 
 
 (defn uuid-string?
