@@ -194,11 +194,12 @@
 (deftest flake-time-test
   (testing "Extract timestamp from Flake"
     (let [f (uid/flake)
-          ts (uid/flake-time f)]
+          ts (uid/flake-time f)
+          current-time-nanos (* (System/currentTimeMillis) 1000000)]
       (is (number? ts))
       (is (pos? ts))
-      (is (> ts (* (System/currentTimeMillis) 1000000))
-          "Timestamp should be in nanoseconds"))))
+      (is (< (Math/abs (- ts current-time-nanos)) (* 1000 1000000))
+          "Timestamp should be within 1 second of current time"))))
 
 
 (deftest parse-flake-test
