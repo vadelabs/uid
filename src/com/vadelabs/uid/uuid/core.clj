@@ -567,13 +567,13 @@
 (defn uuid-string?
   [s]
   (and (string? s)
-       (some? (re-matches uuid-regex s))))
+       (re-matches uuid-regex s)))
 
 
 (defn uuid-urn-string?
   [s]
   (and (string? s)
-       (some? (re-matches urn-regex s))))
+       (re-matches urn-regex s)))
 
 
 (defn uuid-vec?
