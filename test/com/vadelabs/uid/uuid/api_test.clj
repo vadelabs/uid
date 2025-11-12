@@ -10,9 +10,10 @@
 
 (deftest check-unique-identifier-protocol
   (testing "v0 uuid protocol..."
-    (let [tmpid uuid/+null+]
-      (is (= (uuid/get-word-high tmpid)       0))
-      (is (= (uuid/get-word-low tmpid)        0))
+    (let [tmpid uuid/+null+
+          {:keys [high low]} (uuid/get-words tmpid)]
+      (is (= high       0))
+      (is (= low        0))
       (is (= (uuid/null? tmpid)           true))
       (is (= (seq (uuid/to-byte-array tmpid)) [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]))
       (is (= (uuid/get-version tmpid)         0))
@@ -23,9 +24,10 @@
       (is (= (uuid/get-unix-time tmpid)      nil))))
 
   (testing "v1 uuid protocol..."
-    (let [tmpid uuid/+namespace-x500+]
-      (is (= (uuid/get-word-high tmpid)       7757371281853190609))
-      (is (= (uuid/get-word-low tmpid)        -9172705715073830712))
+    (let [tmpid uuid/+namespace-x500+
+          {:keys [high low]} (uuid/get-words tmpid)]
+      (is (= high       7757371281853190609))
+      (is (= low        -9172705715073830712))
       (is (= (uuid/null? tmpid)           false))
       (is (= (seq (uuid/to-byte-array tmpid))
              [107 -89 -72 20 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56]))
@@ -38,9 +40,10 @@
 
   (testing "v3 uuid protocol..."
     (let [tmpid (java.util.UUID/fromString
-                  "d9c53a66-fde2-3d04-b5ad-dce3848df07e")]
-      (is (= (uuid/get-word-high tmpid)       -2754731383046652668))
-      (is (= (uuid/get-word-low tmpid)        -5355381512134070146))
+                  "d9c53a66-fde2-3d04-b5ad-dce3848df07e")
+          {:keys [high low]} (uuid/get-words tmpid)]
+      (is (= high       -2754731383046652668))
+      (is (= low        -5355381512134070146))
       (is (= (uuid/null? tmpid)           false))
       (is (= (seq (uuid/to-byte-array tmpid))
              [-39 -59 58 102 -3 -30 61 4 -75 -83 -36 -29 -124 -115 -16 126]))
@@ -52,9 +55,10 @@
       (is (= (uuid/get-unix-time tmpid)       nil))))
 
   (testing "v4 uuid protocol..."
-    (let [tmpid #uuid "3eb1e29a-4747-4a7d-8e40-94e245f57dc0"]
-      (is (= (uuid/get-word-high tmpid)       4517641053478013565))
-      (is (= (uuid/get-word-low tmpid)       -8196387622257066560))
+    (let [tmpid #uuid "3eb1e29a-4747-4a7d-8e40-94e245f57dc0"
+          {:keys [high low]} (uuid/get-words tmpid)]
+      (is (= high       4517641053478013565))
+      (is (= low       -8196387622257066560))
       (is (= (uuid/null? tmpid)               false))
       (is (= (seq (uuid/to-byte-array tmpid))
              [62 -79 -30 -102 71 71 74 125 -114 64 -108 -30 69 -11 125 -64]))
@@ -66,9 +70,10 @@
       (is (= (uuid/get-unix-time tmpid)       nil))))
 
   (testing "max uuid protocol..."
-    (let [tmpid uuid/+max+]
-      (is (= (uuid/get-word-high tmpid)       -1))
-      (is (= (uuid/get-word-low tmpid)        -1))
+    (let [tmpid uuid/+max+
+          {:keys [high low]} (uuid/get-words tmpid)]
+      (is (= high       -1))
+      (is (= low        -1))
       (is (= (uuid/null? tmpid)               false))
       (is (= (uuid/max? tmpid)                true))
       (is (= (seq (uuid/to-byte-array tmpid)) [-1 -1 -1 -1 -1 -1 -1 -1
@@ -81,9 +86,10 @@
       (is (= (uuid/get-unix-time tmpid)      nil))))
 
   (testing "v6 uuid protocol..."
-    (let [tmpid #uuid "1ef3f06f-16db-6ff0-bb01-1b50e6f39e7f"]
-      (is (= (uuid/get-word-high tmpid)       2230390600394043376))
-      (is (= (uuid/get-word-low tmpid)        -4971662479354257793))
+    (let [tmpid #uuid "1ef3f06f-16db-6ff0-bb01-1b50e6f39e7f"
+          {:keys [high low]} (uuid/get-words tmpid)]
+      (is (= high       2230390600394043376))
+      (is (= low        -4971662479354257793))
       (is (= (uuid/null? tmpid)               false))
       (is (= (uuid/max? tmpid)                false))
       (is (= (seq (uuid/to-byte-array tmpid)) [30  -13 -16 111 22  -37 111 -16
@@ -96,9 +102,10 @@
       (is (= (uuid/get-unix-time tmpid)      1720648452463))))
 
   (testing "v7 uuid protocol..."
-    (let [tmpid #uuid "01909eae-4801-753a-bcd5-0889c34ac129"]
-      (is (= (uuid/get-word-high tmpid)       112764462053815610))
-      (is (= (uuid/get-word-low tmpid)        -4839952836759731927))
+    (let [tmpid #uuid "01909eae-4801-753a-bcd5-0889c34ac129"
+          {:keys [high low]} (uuid/get-words tmpid)]
+      (is (= high       112764462053815610))
+      (is (= low        -4839952836759731927))
       (is (= (uuid/null? tmpid)               false))
       (is (= (uuid/max? tmpid)                false))
       (is (= (seq (uuid/to-byte-array tmpid)) [1   -112 -98 -82  72  1  117 58
@@ -111,9 +118,10 @@
       (is (= (uuid/get-unix-time tmpid)      0x01909eae4801))))
 
   (testing "v8 uuid protocol..."
-    (let [tmpid #uuid "ffffffff-ffff-8fff-bfff-ffffffffffff"]
-      (is (= (uuid/get-word-high tmpid)       -28673))
-      (is (= (uuid/get-word-low tmpid)        -4611686018427387905))
+    (let [tmpid #uuid "ffffffff-ffff-8fff-bfff-ffffffffffff"
+          {:keys [high low]} (uuid/get-words tmpid)]
+      (is (= high       -28673))
+      (is (= low        -4611686018427387905))
       (is (= (uuid/null? tmpid)               false))
       (is (= (uuid/max? tmpid)                false))
       (is (= (seq (uuid/to-byte-array tmpid)) [-1  -1 -1 -1 -1 -1 -113 -1
