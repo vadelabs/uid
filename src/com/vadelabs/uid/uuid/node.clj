@@ -64,21 +64,26 @@
 (def +node-id+ (delay (assemble-bytes (cons 0 (cons 0 (node-id))))))
 
 
-(defn- +v1-lsb+'
-  []
+(defn- make-lsb
+  "Constructs the least significant bits for v1/v6 UUIDs.
+
+   LSB layout (64 bits):
+   [clk_seq_hi_and_res(8) | clk_seq_low(8) | node(48)]
+   [63──────────────56][55──────────48][47───────0]
+
+   The variant bits (2 bits at position 62-63) are set to 0x2 (10 in binary)
+   to indicate RFC 9562 compliance."
+  [node-value]
   (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
         clk-low   (ldb (mask 8 0) +clock-sequence+)]
-    (dpb (mask 8 56) (dpb (mask 8 48) @+node-id+ clk-low) clk-high)))
+    (dpb (mask 8 56) (dpb (mask 8 48) node-value clk-low) clk-high)))
 
 
-(def +v1-lsb+ (memoize +v1-lsb+'))
+(def +v1-lsb+
+  "Precomputed LSB for v1 UUIDs using MAC address-based node identifier."
+  (delay (make-lsb @+node-id+)))
 
 
-(defn- +v6-lsb+'
-  []
-  (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
-        clk-low   (ldb (mask 8 0) +clock-sequence+)]
-    (dpb (mask 8 56) (dpb (mask 8 48) (random/long) clk-low) clk-high)))
-
-
-(def +v6-lsb+ (memoize +v6-lsb+'))
+(def +v6-lsb+
+  "Precomputed LSB for v6 UUIDs using random node identifier."
+  (delay (make-lsb (random/long))))

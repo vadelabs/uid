@@ -368,7 +368,7 @@
         msb       (bit-or time-high
                           (bit-shift-left time-low 32)
                           (bit-shift-left time-mid 16))]
-    (UUID. msb (node/+v1-lsb+))))
+    (UUID. msb @node/+v1-lsb+)))
 
 
 (defn v6
@@ -383,7 +383,7 @@
         msb       (bit-or time-low
                           (bit-shift-left time-mid  16)
                           (bit-shift-left time-high 32))]
-    (UUID. msb (node/+v6-lsb+))))
+    (UUID. msb @node/+v6-lsb+)))
 
 
 (defn v7
