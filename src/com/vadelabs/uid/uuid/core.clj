@@ -85,34 +85,44 @@
 (defprotocol UUIDRfc9562
   "Protocol for RFC 9562 UUID operations."
 
-  (hash-code [uuid]
+  (hash-code
+    [uuid]
     "Returns the hash code as a long.")
 
-  (null? [uuid]
+  (null?
+    [uuid]
     "Returns true if this is the NULL UUID (all zeros).")
 
-  (max? [uuid]
+  (max?
+    [uuid]
     "Returns true if this is the MAX UUID (all ones).")
 
-  (uuid? [x]
+  (uuid?
+    [x]
     "Returns true if x is a UUID instance.")
 
-  (uuid= [x y]
+  (uuid=
+    [x y]
     "Returns true if UUIDs are equal.")
 
-  (uuid< [x y]
+  (uuid<
+    [x y]
     "Returns true if x < y (lexical byte-order comparison).")
 
-  (uuid> [x y]
+  (uuid>
+    [x y]
     "Returns true if x > y (lexical byte-order comparison).")
 
-  (get-version [uuid]
+  (get-version
+    [uuid]
     "Returns the version number (0-8).")
 
-  (get-variant [uuid]
+  (get-variant
+    [uuid]
     "Returns the variant number (typically 2 for RFC 9562).")
 
-  (get-timestamp [uuid]
+  (get-timestamp
+    [uuid]
     "Extracts timestamp from time-based UUIDs (v1/v6/v7).
 
      Returns:
@@ -151,26 +161,32 @@
   (get-instant ^java.util.Date [uuid]
     "Returns timestamp as java.util.Date, or nil for non-time-based UUIDs.")
 
-  (get-unix-time [uuid]
+  (get-unix-time
+    [uuid]
     "Returns timestamp as milliseconds since Unix epoch, or nil for non-time-based UUIDs.")
 
   ;; Structured accessors
-  (get-words [uuid]
+  (get-words
+    [uuid]
     "Returns UUID as two 64-bit words: {:high long :low long}")
 
-  (get-time-fields [uuid]
+  (get-time-fields
+    [uuid]
     "Returns time components: {:low long :mid long :high long}
      Layout varies by version (v1 vs v6).")
 
-  (get-clock-fields [uuid]
+  (get-clock-fields
+    [uuid]
     "Returns clock components: {:seq short :high long :low long}
      seq is non-nil only for v1/v6.")
 
-  (get-node [uuid]
+  (get-node
+    [uuid]
     "Returns node identifier: {:id long}")
 
   ;; Conversions
-  (to-byte-array [uuid]
+  (to-byte-array
+    [uuid]
     "Returns 16-byte array representation.")
 
   (to-string ^String [uuid]
