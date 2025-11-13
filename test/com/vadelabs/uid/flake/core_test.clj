@@ -40,7 +40,7 @@
       (is (= (flake/make-flake -1 -1 -1) (flake/make-flake bytez))))
 
     (let [f (flake/flake)
-          bytez (flake/flake-bytes f)]
+          bytez (flake/as-bytes f)]
       (is (= f (flake/make-flake bytez))))))
 
 

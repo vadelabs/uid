@@ -68,12 +68,6 @@
    (impl/make-flake byte-data)))
 
 
-(defn flake-bytes
-  "Get the byte array representation of a flake"
-  [f]
-  (impl/flake->bytes f))
-
-
 (defn compare-flakes
   "Compare two flakes, returns negative if f1 < f2, zero if equal, positive if f1 > f2"
   [f1 f2]
