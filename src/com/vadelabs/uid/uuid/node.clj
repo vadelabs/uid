@@ -15,8 +15,9 @@
 
 (defonce +clock-sequence+ (inc (rand-int 0xffff)))
 
+
 (alter-meta! #'+clock-sequence+ assoc :doc
-  "Clock sequence for v1 and v6 UUIDs (RFC 9562 Section 6.8).
+             "Clock sequence for v1 and v6 UUIDs (RFC 9562 Section 6.8).
 
    Purpose: Provides additional uniqueness when:
    - System clock moves backward
