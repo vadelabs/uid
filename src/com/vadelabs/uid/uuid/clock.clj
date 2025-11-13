@@ -21,12 +21,14 @@
    used in UUID v1 and v6 timestamps."
   100103040000000000)
 
+
 (def ^:const unix-to-universal-time-offset-ms
   "Milliseconds between Unix epoch (1970-01-01) and Universal Time epoch (1900-01-01).
 
    Calculated as: 70 years × 365.25 days/year × 24 hours/day × 3600 seconds/hour × 1000 ms/second
    Value: 2,208,988,800,000 ms"
   2208988800000)
+
 
 (def ^:const ms-to-100ns-intervals
   "Conversion factor from milliseconds to 100-nanosecond intervals.
@@ -35,10 +37,12 @@
    1 millisecond = 10,000 × 100-nanosecond intervals"
   10000)
 
+
 (def ^:const gregorian-to-unix-epoch-offset
   "Offset for converting from Gregorian epoch timestamps to Unix epoch timestamps.
    Used in posix-time calculations to shift time base from 1582 to 1970."
   12219292800000)
+
 
 (def ^:const unix-to-universal-time-offset-seconds
   "Seconds between Unix epoch (1970-01-01) and Universal Time epoch (1900-01-01).
