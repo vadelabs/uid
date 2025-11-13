@@ -51,6 +51,10 @@
 (def ^:private encoded-length 32)
 (def ^:private byte-length 24)
 
+(def nanos-per-milli 1000000)
+(def ^:private six-bit-mask 0x3F)
+(def ^:private byte-mask 0xFF)
+
 
 (def ^:private ^ThreadLocal rng-thread-local
   (ThreadLocal/withInitial
@@ -63,7 +67,7 @@
   (loop [i 7
          v value]
     (when (>= i 0)
-      (aset-byte bs (+ offset i) (unchecked-byte (bit-and v 0xFF)))
+      (aset-byte bs (+ offset i) (unchecked-byte (bit-and v byte-mask)))
       (recur (dec i) (unsigned-bit-shift-right v 8)))))
 
 
@@ -74,7 +78,7 @@
     (if (< i 8)
       (recur (inc i)
              (bit-or (bit-shift-left value 8)
-                     (bit-and (aget bs (+ offset i)) 0xFF)))
+                     (bit-and (aget bs (+ offset i)) byte-mask)))
       value)))
 
 
@@ -83,20 +87,20 @@
   (let [^StringBuilder sb (StringBuilder. ^int encoded-length)]
     (loop [i 0]
       (when (< i (alength bs))
-        (let [b1 (bit-and (aget bs i) 0xFF)
+        (let [b1 (bit-and (aget bs i) byte-mask)
               b2 (if (< (+ i 1) (alength bs))
-                   (bit-and (aget bs (+ i 1)) 0xFF)
+                   (bit-and (aget bs (+ i 1)) byte-mask)
                    0)
               b3 (if (< (+ i 2) (alength bs))
-                   (bit-and (aget bs (+ i 2)) 0xFF)
+                   (bit-and (aget bs (+ i 2)) byte-mask)
                    0)
               triplet (bit-or (bit-shift-left b1 16)
                               (bit-shift-left b2 8)
                               b3)]
-          (.append sb (nth encoding-chars (bit-and (unsigned-bit-shift-right triplet 18) 0x3F)))
-          (.append sb (nth encoding-chars (bit-and (unsigned-bit-shift-right triplet 12) 0x3F)))
-          (.append sb (nth encoding-chars (bit-and (unsigned-bit-shift-right triplet 6) 0x3F)))
-          (.append sb (nth encoding-chars (bit-and triplet 0x3F)))
+          (.append sb (nth encoding-chars (bit-and (unsigned-bit-shift-right triplet 18) six-bit-mask)))
+          (.append sb (nth encoding-chars (bit-and (unsigned-bit-shift-right triplet 12) six-bit-mask)))
+          (.append sb (nth encoding-chars (bit-and (unsigned-bit-shift-right triplet 6) six-bit-mask)))
+          (.append sb (nth encoding-chars (bit-and triplet six-bit-mask)))
           (recur (+ i 3)))))
     (.toString sb)))
 
@@ -118,11 +122,11 @@
                                 (bit-shift-left c3 6)
                                 c4)]
             (when (< pos (alength result))
-              (aset-byte result pos (unchecked-byte (bit-and (unsigned-bit-shift-right triplet 16) 0xFF))))
+              (aset-byte result pos (unchecked-byte (bit-and (unsigned-bit-shift-right triplet 16) byte-mask))))
             (when (< (+ pos 1) (alength result))
-              (aset-byte result (+ pos 1) (unchecked-byte (bit-and (unsigned-bit-shift-right triplet 8) 0xFF))))
+              (aset-byte result (+ pos 1) (unchecked-byte (bit-and (unsigned-bit-shift-right triplet 8) byte-mask))))
             (when (< (+ pos 2) (alength result))
-              (aset-byte result (+ pos 2) (unchecked-byte (bit-and triplet 0xFF))))
+              (aset-byte result (+ pos 2) (unchecked-byte (bit-and triplet byte-mask))))
             (recur (+ i 4) (+ pos 3))))
         result))))
 

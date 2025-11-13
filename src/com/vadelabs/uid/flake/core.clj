@@ -99,7 +99,7 @@
   Converts the nanosecond timestamp to milliseconds for easier
   interoperability with standard time libraries."
   [f]
-  (quot (impl/timestamp-nanos f) 1000000))
+  (quot (impl/timestamp-nanos f) impl/nanos-per-milli))
 
 
 (defn age-nanos
@@ -116,7 +116,7 @@
 
   Calculates the time elapsed since the Flake was created."
   [f]
-  (quot (age-nanos f) 1000000))
+  (quot (age-nanos f) impl/nanos-per-milli))
 
 
 (defn read-flake
