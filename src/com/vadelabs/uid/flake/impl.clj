@@ -79,8 +79,8 @@
 
 
 (defn- encode->string
-  [bs]
-  (let [sb (StringBuilder. encoded-length)]
+  ^String [^bytes bs]
+  (let [^StringBuilder sb (StringBuilder. ^int encoded-length)]
     (loop [i 0]
       (when (< i (alength bs))
         (let [b1 (bit-and (aget bs i) 0xFF)
